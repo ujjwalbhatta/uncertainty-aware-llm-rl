@@ -10,6 +10,8 @@ from minigrid.minigrid_env import MiniGridEnv
 import gymnasium as gym
 from gymnasium.spaces import Text
 from collections import deque
+import matplotlib.pyplot as plt
+
 
 # Initial Configuration
 class Config:
@@ -775,9 +777,7 @@ class GRPOPolicy(nn.Module):
         print(f"Models saved to {config.SAVE_DIR}")
 
     def _plot_progress(self, rewards, task_success, episode, final=False):
-        import matplotlib.pyplot as plt
         plt.figure(figsize=(15, 10))
-
         plt.subplot(2, 2, 1)
         plt.plot(rewards)
         plt.title('Episode Rewards')

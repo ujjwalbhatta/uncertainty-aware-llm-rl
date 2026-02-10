@@ -1,7 +1,6 @@
 import os
 import argparse
 import time
-import pandas as pd
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run MC Dropout Ablation Study")

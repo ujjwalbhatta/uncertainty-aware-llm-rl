@@ -226,7 +226,6 @@ class StatePromptGenerator:
         else:
             mission = "reach goal"
         
-        # Format exactly as shown in the paper example (page 5)
         return (
             f"The red agent is in a {env.width}x{env.height} grid environment surrounded by "
             f"walls. Each grid cell is identified by coordinates (i, j), where i denotes "
@@ -264,7 +263,6 @@ class Oracle:
             front_pos = env.front_pos
             front_cell = env.grid.get(*front_pos)
             
-            # Fix: Compare tuple elements individually
             if (front_pos[0] == target[0] and front_pos[1] == target[1]):
                 if target == env.key_pos and not env.key_picked:
                     return 3  # Pick up
@@ -273,7 +271,6 @@ class Oracle:
                 elif target == env.goal_pos:
                     return 2  # Move forward to goal
             
-            # Need to turn to face target
             rel_dir = self._get_rel_dir(env.agent_pos, target, env.agent_dir)
             if rel_dir == "left":
                 return 0  # Turn left
@@ -492,8 +489,6 @@ class RLDataset(Dataset):
                     
                     _, _, done, _, _ = self.env.step(action)
                     
-                    # As per the paper, only include states where
-                    # the oracle's action was selected for training
                     if action == oracle_action:
                         prompts.append(prompt)
                         actions.append(oracle_action)
@@ -507,7 +502,7 @@ class RLDataset(Dataset):
     def __getitem__(self, idx):
         return self.prompts[idx], self.actions[idx]
 
-# Calibrated BERT Model - Using MC Dropout as described in paper
+# Calibrated BERT Model
 class CalibratedBERT(nn.Module):
     def __init__(self):
         super().__init__()
@@ -526,7 +521,6 @@ class CalibratedBERT(nn.Module):
         return self.classifier(pooled)
     
     def predict(self, prompt):
-        """Regular prediction without MC Dropout"""
         self.eval()  # Disable dropout for standard prediction
         inputs = self.tokenizer(
             prompt, 
@@ -610,7 +604,6 @@ class CalibratedRLTrainer:
         self.policy_optimizer = optim.Adam(self.policy.parameters(), lr=config.LEARNING_RATE)
         
     def train_llm(self, env_width=8, env_height=8, num_samples=21500, force_finetune=False):
-        """Fine-tune the LLM on oracle data with specific grid dimensions, or load existing model if available"""
         # Check if pre-trained model exists
         model_path = os.path.join(config.SAVE_DIR, f"best_llm_{env_width}x{env_height}.pt")
         print(model_path)
@@ -690,7 +683,7 @@ class CalibratedRLTrainer:
                 torch.save(self.llm.state_dict(), model_path)
                 print(f"Saved model with accuracy: {val_acc:.4f}")
                 
-            # Early stopping condition - paper mentions 90-93% accuracy
+            # Early stopping condition 
             if val_acc >= 0.9:
                 print(f"Reached target accuracy of {val_acc:.4f}. Early stopping.")
                 break
@@ -737,7 +730,7 @@ class CalibratedRLTrainer:
         prompt_gen = StatePromptGenerator()
 
         # RL parameters
-        num_episodes = 1000  # Same as paper
+        num_episodes = 1000  
         gamma = config.GAMMA
         clip_epsilon = config.PPO_EPSILON
         ppo_batch_size = 50  # Number of episodes before policy update
