@@ -1,0 +1,4 @@
+Area Under the Curve (AUC): 516.62
+Key collection rate: 95.60%
+Door opening rate: 88.40%
+Goal achievement rate: 74.20%

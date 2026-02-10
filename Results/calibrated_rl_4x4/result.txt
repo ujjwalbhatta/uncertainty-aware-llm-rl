@@ -1,0 +1,6 @@
+Results for episode_metrics_4x4.csv:
+Area Under the Curve (AUC): 1033.06
+Key collection rate: 100.00%
+Door opening rate: 100.00%
+Goal achievement rate: 99.90%
+Total episodes: 1000

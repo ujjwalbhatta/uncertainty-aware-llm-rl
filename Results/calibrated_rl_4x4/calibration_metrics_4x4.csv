@@ -1,0 +1,5 @@
+Methods,ECE,BS,Discrimination
+Deterministic 4*4 by Mean Entropy,0.1875622466241902,0.18152388258094002,0.0
+Deterministic 4*4 by Max Probability,0.22029756648199897,0.19602496897580937,0.0
+Sample Consistency 4*4 by Mean Entropy,0.25328699673885463,0.19048666145259704,0.06
+Sample Consistency 4*4 Max Probability,0.22601171859673086,0.20674071049861026,0.0
