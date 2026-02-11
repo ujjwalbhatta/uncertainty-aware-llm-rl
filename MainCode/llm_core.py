@@ -120,6 +120,66 @@ class UnlockPickupEnv(MiniGridEnv):
         self.prev_goal_distance = self._manhattan_dist(self.agent_pos, self.goal_pos)
 
     def step(self, action):
+            action = min(max(action, 0), 4)
+            # Track previous completion state to detect new completions
+            prev_key_picked = self.key_picked
+            prev_door_opened = self.door_opened
+            was_at_goal = self.agent_pos == self.goal_pos
+            
+            # Check if pickup/open action is valid BEFORE taking the action
+            valid_pickup = False
+            valid_open = False
+            if action == 3:  # Pickup
+                valid_pickup = self._valid_pickup()
+            elif action == 4:  # Open door
+                valid_open = self._valid_open()
+            
+            # Map action to MiniGrid's action
+            minigrid_action = self._actions[action]
+            obs, _, terminated, truncated, info = super().step(minigrid_action)
+            
+            # Track sub-tasks after taking the action
+            if self.carrying and self.carrying.type == "key":
+                self.key_picked = True
+            
+            door_cell = self.grid.get(*self.door_pos)
+            if door_cell is None or (isinstance(door_cell, Door) and not door_cell.is_locked):
+                self.door_opened = True
+            
+            # Initialize reward
+            reward = 0
+            
+            # Invalid action penalty - only apply if the action was invalid
+            if action == 3 and not valid_pickup:  # Invalid pickup
+                reward += config.INVALID_ACTION_PENALTY
+                print(f"Invalid pickup attempt! {config.INVALID_ACTION_PENALTY}")
+            elif action == 4 and not valid_open:  # Invalid door open
+                reward += config.INVALID_ACTION_PENALTY
+                print(f"Invalid door open attempt! {config.INVALID_ACTION_PENALTY}")
+            
+            # Mission rewards - only award when newly completed
+            # First mission: Key pickup reward - only if pickup was valid
+            if not prev_key_picked and self.key_picked:
+                reward += config.KEY_REWARD
+                print(f"First mission completed: Key picked up! +{config.KEY_REWARD}")
+            
+            # Second mission: Door opening reward - only if door open was valid
+            if not prev_door_opened and self.door_opened:
+                reward += config.DOOR_REWARD
+                print(f"Second mission completed: Door opened! +{config.DOOR_REWARD}")
+            
+            # Third mission: Reaching the goal
+            if self.agent_pos == self.goal_pos and self.door_opened and not was_at_goal:
+                goal_reward = config.GOAL_REWARD
+                time_bonus = (1 - self.step_count / self.max_steps)
+                reward += goal_reward + time_bonus
+                print(f"Final mission completed: Goal reached! Base: +{goal_reward}, Time bonus: +{time_bonus:.4f}")
+                terminated = True
+            
+            done = terminated or truncated
+            return obs, reward, done, truncated, info
+    
+    def step(self, action):
         action = min(max(action, 0), 4)
         # Map action to MiniGrid's action
         minigrid_action = self._actions[action]
